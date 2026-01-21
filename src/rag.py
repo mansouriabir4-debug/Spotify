@@ -1,4 +1,3 @@
-# src/rag.py
 import os
 import json
 from datetime import datetime
@@ -6,6 +5,7 @@ from dotenv import load_dotenv
 import pandas as pd
 
 from llama_index.core import VectorStoreIndex, Document, Settings
+from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -39,11 +39,10 @@ llm = AzureOpenAI(
 Settings.embed_model = embed_model
 Settings.llm = llm
 
-
+# Load Dataset
 df = pd.read_csv("data/data24.csv", encoding="latin1")
 
-
-# Row -> Texte RAG
+# Row to Texte RAG
 def row_to_text(row: pd.Series) -> str:
     return f"""
 Titre : {row['Track']}
@@ -71,7 +70,7 @@ Classement :
 """
 
 
-documents = [
+base_documents = [
     Document(
         text=row_to_text(row),
         metadata={
@@ -79,20 +78,32 @@ documents = [
             "artist": row["Artist"],
             "album": row["Album Name"],
             "release_date": row["Release Date"],
+            "isrc": row["ISRC"],
         },
     )
     for _, row in df.iterrows()
 ]
 
 
+# Chunking
+splitter = SentenceSplitter(chunk_size=300, chunk_overlap=60)
 
+nodes = splitter.get_nodes_from_documents(base_documents)
+
+for i, n in enumerate(nodes):
+    n.metadata["chunk_index"] = i
+
+# Chroma Vector Store
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
 collection = chroma_client.get_or_create_collection("spotify_2024")
 vector_store = ChromaVectorStore(chroma_collection=collection)
 
-index = VectorStoreIndex.from_documents(documents, vector_store=vector_store)
+index = VectorStoreIndex(
+    nodes=nodes,
+    vector_store=vector_store,
+)
 
-
+# Chat Engine
 memory = ChatMemoryBuffer.from_defaults(token_limit=2000)
 
 chat_engine = CondensePlusContextChatEngine.from_defaults(
@@ -109,6 +120,7 @@ chat_engine = CondensePlusContextChatEngine.from_defaults(
 )
 
 
+# Conversation Tracker
 class ConversationTracker:
     def __init__(self, file="conversation_history.json"):
         self.file = file
@@ -149,11 +161,12 @@ class ConversationTracker:
 tracker = ConversationTracker()
 
 
+# Public API
 def query_spotify(question: str) -> str:
     try:
-        nodes = index.as_retriever(similarity_top_k=3).retrieve(question)
+        nodes_retrieved = index.as_retriever(similarity_top_k=4).retrieve(question)
 
-        if not nodes or nodes[0].score < 0.3:
+        if not nodes_retrieved or nodes_retrieved[0].score < 0.3:
             msg = "Je peux répondre uniquement aux questions liées aux données Spotify 2024."
             tracker.add(question, msg, False)
             return msg

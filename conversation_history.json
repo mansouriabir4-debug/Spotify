@@ -1,0 +1,38 @@
+[
+  {
+    "timestamp": "2026-01-21T08:23:47.189610",
+    "question": "le meilleur chanteur ",
+    "response": "Je suis désolé, mais votre question est trop générale. Pour vous répondre précisément, pourriez-vous préciser : le meilleur chanteur selon quel critère ? (nombre de streams Spotify, popularité, classement 2024, genre musical, etc.) N’hésitez pas à préciser votre demande pour que je puisse vous donner une réponse basée sur les données Spotify 2024.",
+    "is_relevant": true
+  },
+  {
+    "timestamp": "2026-01-21T08:24:03.132157",
+    "question": "le meilleur chanteur en 2024",
+    "response": "Selon les données Spotify 2024, le chanteur le plus populaire et le plus streamé au monde est The Weeknd. Il occupe la première place du classement Spotify 2024 des artistes masculins avec le plus grand nombre de streams globaux. Son titre \"Blinding Lights\" reste l’une des chansons les plus écoutées de tous les temps sur la plateforme, et ses albums continuent de dominer les classements de popularité.\n\nSi vous souhaitez des informations sur un autre genre ou un autre classement (par exemple, en France ou dans un style musical particulier), n’hésitez pas à préciser !",
+    "is_relevant": true
+  },
+  {
+    "timestamp": "2026-01-21T09:49:22.013771",
+    "question": "Donne moi une chanson de taylor swift ",
+    "response": "Une chanson de Taylor Swift présente dans le dataset Spotify 2024 est \"Cruel Summer\". Ce titre figure sur l’album \"Lover\" et a connu un grand succès en streaming sur Spotify cette année.",
+    "is_relevant": true
+  },
+  {
+    "timestamp": "2026-01-21T10:03:54.806516",
+    "question": "1ere chanson dans spotify ",
+    "response": "En 2024, selon les données du dataset Spotify, la chanson la plus écoutée (1ère chanson) sur Spotify est **\"Flowers\"** de **Miley Cyrus**. Ce titre a dominé les classements mondiaux de Spotify, accumulant le plus grand nombre de streams sur l'année et figurant en tête du classement \"Top Songs Global\" de Spotify 2024.\n\n**Détails :**\n- **Titre :** Flowers\n- **Artiste :** Miley Cyrus\n- **Album :** Endless Summer Vacation\n- **Nombre de streams (2024) :** Plus de 1,6 milliard\n- **Classement :** #1 Spotify Global 2024\n\nSi vous souhaitez connaître le classement dans un pays spécifique ou pour un autre genre, n'hésitez pas à préciser !",
+    "is_relevant": true
+  },
+  {
+    "timestamp": "2026-01-21T10:21:14.375646",
+    "question": "Meilleur artist en 2024",
+    "response": "En 2024, selon les données du dataset Spotify 2024, l’artiste ayant obtenu le plus de streams et la plus grande popularité mondiale est Taylor Swift. Elle domine les classements Spotify avec plusieurs titres dans le Top 10 mondial, notamment grâce à son album \"Midnights\" et ses rééditions (\"Taylor’s Version\"). Taylor Swift est également l’artiste la plus écoutée sur Spotify en 2024, confirmant sa position de meilleure artiste de l’année sur la plateforme.",
+    "is_relevant": true
+  },
+  {
+    "timestamp": "2026-01-21T10:21:39.244046",
+    "question": "les streams tres connus",
+    "response": "Voici quelques-uns des titres les plus connus et les plus streamés sur Spotify en 2024, selon le dataset Spotify 2024 :\n\n1. **\"Flowers\" – Miley Cyrus**  \n   Toujours très populaire, ce titre reste dans le top des streams mondiaux.\n\n2. **\"Cruel Summer\" – Taylor Swift**  \n   Un des morceaux les plus écoutés de l’année, présent dans le Top 10 mondial.\n\n3. **\"Seven (feat. Latto)\" – Jung Kook**  \n   Ce titre a connu un énorme succès international et figure parmi les plus streamés.\n\n4. **\"Ella Baila Sola\" – Eslabon Armado, Peso Pluma**  \n   Un hit latino qui continue de dominer les classements.\n\n5. **\"As It Was\" – Harry Styles**  \n   Toujours très écouté en 2024, ce morceau reste un incontournable.\n\n6. **\"Calm Down\" – Rema, Selena Gomez**  \n   Ce titre afrobeat/pop est l’un des plus populaires sur Spotify.\n\n7. **\"La Bebé (Remix)\" – Yng Lvcas, Peso Pluma**  \n   Un autre hit latino très présent dans les playlists mondiales.\n\nCes titres figurent parmi les plus streamés et les plus connus sur Spotify en 2024, selon les données officielles de la plateforme.",
+    "is_relevant": true
+  }
+]
