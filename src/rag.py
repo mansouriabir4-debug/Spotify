@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 import pandas as pd
 
 from llama_index.core import VectorStoreIndex, Document, Settings
-from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -39,10 +38,12 @@ llm = AzureOpenAI(
 Settings.embed_model = embed_model
 Settings.llm = llm
 
-# Load Dataset
-df = pd.read_csv("data/data24.csv", encoding="latin1")
 
-# Row to Texte RAG
+# Load Dataset
+df = pd.read_csv("data/data244.csv", encoding="latin1")
+
+
+# Row -> Texte RAG
 def row_to_text(row: pd.Series) -> str:
     return f"""
 Titre : {row['Track']}
@@ -55,14 +56,6 @@ Spotify :
 - Streams : {row['Spotify Streams']}
 - Popularité : {row['Spotify Popularity']}
 - Playlists : {row['Spotify Playlist Count']}
-
-YouTube :
-- Vues : {row['YouTube Views']}
-- Likes : {row['YouTube Likes']}
-
-TikTok :
-- Posts : {row['TikTok Posts']}
-- Vues : {row['TikTok Views']}
 
 Classement :
 - Rang historique : {row['All Time Rank']}
@@ -85,23 +78,12 @@ base_documents = [
 ]
 
 
-# Chunking
-splitter = SentenceSplitter(chunk_size=300, chunk_overlap=60)
-
-nodes = splitter.get_nodes_from_documents(base_documents)
-
-for i, n in enumerate(nodes):
-    n.metadata["chunk_index"] = i
-
-# Chroma Vector Store
+# Vector Store (Chroma)
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
 collection = chroma_client.get_or_create_collection("spotify_2024")
 vector_store = ChromaVectorStore(chroma_collection=collection)
 
-index = VectorStoreIndex(
-    nodes=nodes,
-    vector_store=vector_store,
-)
+index = VectorStoreIndex.from_documents(base_documents, vector_store=vector_store)
 
 # Chat Engine
 memory = ChatMemoryBuffer.from_defaults(token_limit=2000)
@@ -114,13 +96,14 @@ chat_engine = CondensePlusContextChatEngine.from_defaults(
         "Vous êtes un assistant expert en musique et streaming Spotify 2024. "
         "Vous répondez uniquement à partir des données du dataset Spotify 2024 "
         "(titres, artistes, albums, streams, popularité, classements, plateformes). "
+        "Lorsque c’est pertinent, structurez vos réponses sous forme de listes, "
+        "comparaisons ou tableaux Markdown. "
         "Si la question est hors sujet, refusez poliment."
     ),
     verbose=False,
 )
 
 
-# Conversation Tracker
 class ConversationTracker:
     def __init__(self, file="conversation_history.json"):
         self.file = file
@@ -137,12 +120,14 @@ class ConversationTracker:
             json.dump(self.history, f, ensure_ascii=False, indent=2)
 
     def add(self, q, r, ok):
-        self.history.append({
-            "timestamp": datetime.now().isoformat(),
-            "question": q,
-            "response": r,
-            "is_relevant": ok,
-        })
+        self.history.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "question": q,
+                "response": r,
+                "is_relevant": ok,
+            }
+        )
         self._save()
 
     def recent(self, n=10):
@@ -161,27 +146,39 @@ class ConversationTracker:
 tracker = ConversationTracker()
 
 
+def is_comparison_question(question: str) -> bool:
+    keywords = ["compare", "comparaison", "différence", "vs", "versus", "entre"]
+    q = question.lower()
+    return any(k in q for k in keywords)
+
 # Public API
 def query_spotify(question: str) -> str:
     try:
+        if is_comparison_question(question):
+            return str(
+                chat_engine.chat(
+                    "Fais une comparaison structurée, chiffrée quand possible, "
+                    "et termine par une conclusion courte.\n\n"
+                    + question
+                )
+            )
+
         nodes_retrieved = index.as_retriever(similarity_top_k=4).retrieve(question)
 
         if not nodes_retrieved or nodes_retrieved[0].score < 0.3:
-            msg = "Je peux répondre uniquement aux questions liées aux données Spotify 2024."
-            tracker.add(question, msg, False)
-            return msg
+            return "Je peux répondre uniquement aux questions liées aux données Spotify 2024."
 
-        response = str(chat_engine.chat(question))
-        tracker.add(question, response, True)
-        return response
+        return str(chat_engine.chat(question))
 
     except Exception as e:
-        err = f"Erreur : {e}"
-        tracker.add(question, err, False)
-        return err
+        return f"Erreur : {e}"
+
+
+
 
 def get_conversation_history(limit=10):
     return tracker.recent(limit)
+
 
 def get_conversation_stats():
     return tracker.stats()
