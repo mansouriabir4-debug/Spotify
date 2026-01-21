@@ -4,7 +4,9 @@ import pandas as pd
 st.set_page_config(page_title="🎧 Spotify 2024 Assistant", layout="wide")
 st.title("🎧 Spotify 2024 – RAG Assistant")
 
-# Load dataset
+# =========================
+# LOAD DATASET (CACHE DATA)
+# =========================
 @st.cache_data
 def load_data():
     df = pd.read_csv("data/data244.csv", encoding="latin1")
@@ -15,34 +17,28 @@ def load_data():
         .str.replace(",", "", regex=False)
         .str.replace(".", "", regex=False)
     )
-    df["Spotify Streams"] = pd.to_numeric(df["Spotify Streams"], errors="coerce").fillna(0)
-
-    # YouTube Views
-    if "YouTube Views" in df.columns:
-        df["YouTube Views"] = (
-            df["YouTube Views"]
-            .astype(str)
-            .str.replace(",", "", regex=False)
-            .str.replace(".", "", regex=False)
-        )
-        df["YouTube Views"] = pd.to_numeric(df["YouTube Views"], errors="coerce").fillna(0)
-
-    # ikTok Views
-    if "TikTok Views" in df.columns:
-        df["TikTok Views"] = (
-            df["TikTok Views"]
-            .astype(str)
-            .str.replace(",", "", regex=False)
-            .str.replace(".", "", regex=False)
-        )
-        df["TikTok Views"] = pd.to_numeric(df["TikTok Views"], errors="coerce").fillna(0)
+    df["Spotify Streams"] = pd.to_numeric(
+        df["Spotify Streams"], errors="coerce"
+    ).fillna(0)
 
     return df
 
 df = load_data()
 
+# =========================
+# LOAD RAG (CACHE RESOURCE)
+# =========================
+@st.cache_resource
+def load_rag_components():
+    """Charge les composants RAG une seule fois"""
+    from src.rag import query_spotify, get_conversation_history
+    return query_spotify, get_conversation_history
 
-# DATASET
+query_spotify, get_conversation_history = load_rag_components()
+
+# =========================
+# DATASET OVERVIEW
+# =========================
 st.header("🎵 Dataset Spotify 2024")
 
 col1, col2, col3 = st.columns(3)
@@ -53,10 +49,11 @@ col3.metric("Spotify Streams totaux", f"{int(df['Spotify Streams'].sum()):,}")
 with st.expander("📄 Voir un aperçu (20 premières chansons)"):
     st.dataframe(df.head(20), use_container_width=True)
 
-
-#  ANALYSES RAPIDES (SANS LLM)
+# =========================
+# QUICK ANALYSIS
+# =========================
 st.divider()
-st.header(" Analyses rapides ")
+st.header("📊 Analyses rapides")
 
 colA, colB = st.columns(2)
 
@@ -71,8 +68,9 @@ with colA:
         st.subheader("Top 5 artistes – Spotify Streams")
         st.dataframe(top_artists.reset_index(), use_container_width=True)
 
-
-# ASSISTANT RAG
+# =========================
+# RAG ASSISTANT
+# =========================
 st.divider()
 st.header("💬 Assistant Spotify 2024")
 
@@ -84,7 +82,6 @@ question = st.text_input(
 if st.button("🎶 Demander"):
     if question:
         with st.spinner("Analyse des données Spotify..."):
-            from src.rag import query_spotify
             answer = query_spotify(question)
 
         st.success("✅ Réponse")
